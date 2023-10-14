@@ -1,95 +1,78 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
 
-export default function Home() {
+// components/Homepage.js
+import React, { useEffect, useState } from 'react';
+import '../styles/pages/homepage.scss';
+import axios from 'axios';
+import { fetchImageURL } from '../utils/image';
+import { useGlobalsContext } from '../utils/fetchGlobals';
+import { fetchPageData } from '../utils/fetchPageData';
+import ServiceSwiper from '../components/service-swiper';
+import Faqs from '../components/faqs'
+
+const Homepage = () => {
+  const globalsData = useGlobalsContext();
+  const [pageData, setPageData] = useState(null);
+  const [bannerImageURL, setBannerImageURL] = useState(null);
+
+  useEffect(() => {
+    const slug = 'homepage'; // Change this to the desired page slug
+    fetchPageData(slug)
+      .then((data) => {
+        setPageData(data);
+
+        // Fetch the banner image URL
+        const bannerImageID = data.acf.banner_image;
+        if (bannerImageID) {
+          fetchImageURL(bannerImageID)
+            .then((url) => setBannerImageURL(url))
+            .catch((error) => {
+              console.log('Error fetching this image')
+            });
+        }
+      })
+      .catch((error) => {
+        console.log('Error fetching page data');
+      });
+  }, []);
+
+  if (!pageData) {
+    return( 
+    <div className="loading">
+      <img src="/loading.gif"/>
+    </div> );
+  }
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <>
+      <section className="homepage__banner">
+        {/* Use the fetched bannerImageURL */}
+        {bannerImageURL && (
+          <img src={bannerImageURL} alt="Hero Banner" className="homepage__banner-background"/>
+        )}
+        <div className="homepage__banner-overlay"></div>
+        <div className="container">
+          <div className="homepage__banner-content">
+            <div className="homepage__banner-content-green">
+              {pageData.acf.banner_green_text}
+            </div>
+            <div className="homepage__banner-content-main">
+              {pageData.acf.banner_main_title}
+            </div>
+            <div className="homepage__banner-content-sub">
+              {pageData.acf.banner_sub_text}
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+      <section className="homepage__usps"></section>
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+      <ServiceSwiper/>
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+      <Faqs/>
+      
+    </>
+  );
+};
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
-}
+export default Homepage;
